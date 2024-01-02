@@ -82,7 +82,7 @@ def displaypage():
     fig.add_vline(x=650, line_dash='dash')
     col2.plotly_chart(fig, use_container_width=True)
 
-    st.markdown('### Select a source to view:')
+    st.markdown('### Select a source to view the molecular plots:')
     col1,col2 = st.columns([0.3,0.7])
     with col1:
         with st.form("source"):
