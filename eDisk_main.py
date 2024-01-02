@@ -52,7 +52,8 @@ def displaypage():
                 program is to investigate whether or not substructures exist in
                 disks around embedded, Class 0/I protostars that might be
                 indicative of early planet formation.''')
-    st.markdown('''<p> To learn more about the eDisk program, read the paper here:  
+    st.markdown('''<p> To learn more about the eDisk program, and learn about its results 
+                and findings read the paper here:  
                 <a href='https://ui.adsabs.harvard.edu/abs/2023ApJ...951....8O/abstract'>eDisk overview paper</a> </p>''', unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
