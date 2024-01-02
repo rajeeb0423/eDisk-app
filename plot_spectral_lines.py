@@ -76,8 +76,6 @@ def plot_mom_map(fig, mom_map, distance, cmap_val, v_sys=None):
         minval, maxval = v_sys-3, v_sys+3
 
     gc = aplpy.FITSFigure(mom_map, figure=fig)
-    st.markdown(minval)
-    st.markdown(maxval)
     gc.show_colorscale(vmin=minval, vmax=maxval, cmap = cmap_val, stretch ='linear')
     gc.add_colorbar()
     #contours=drawContours(5, 405, rms_val)
