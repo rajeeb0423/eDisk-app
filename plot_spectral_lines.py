@@ -20,7 +20,7 @@ def min_max_vals(img_val):
     return min_flux, max_flux
 
 def drawContours(contstart=None,contend=None,contnoise=None):
-    poscontours = np.geomspace(contstart,contend, num=7)
+    poscontours = np.geomspace(contstart,contend, num=5)
     negcontours=poscontours[::-1]*(-1.0)
     contours=np.concatenate((negcontours,poscontours))*contnoise
     
@@ -38,7 +38,7 @@ def standardStuff(f, length, dist_val, color):
     f.beam.set_color('black')
     f.beam.set_frame(True)
 
-def plot_continuum(fig, cont, rms_region, distance):
+def plot_continuum(fig, cont, distance):
 
     hdul = fits.open(cont)
     cont_img = hdul[0]
@@ -47,28 +47,21 @@ def plot_continuum(fig, cont, rms_region, distance):
     ra_pix, dec_pix = cont_header['naxis1']//2, cont_header['naxis2']//2
     ra, dec = w.all_pix2world(ra_pix, dec_pix, 0)
 
-    region_for_rms = rms_region.to_pixel(w)
-    position = (region_for_rms.center.x, region_for_rms.center.y)
-    size = (region_for_rms.height, region_for_rms.width)
-
-    region_for_rms = Cutout2D(cont_img.data, position, size)
-    rms_val = np.sqrt(np.nanmean((region_for_rms.data)**2))
-
     minval, maxval = min_max_vals(cont_img)
     gc = aplpy.FITSFigure(cont_img, figure=fig)
     gc.show_colorscale(vmin= minval, vmax=maxval, cmap='inferno', stretch='arcsinh')
     gc.add_colorbar()
     standardStuff(gc, 1, distance, 'w')
-    return ra, dec, gc, cont_header, rms_val
+    return ra, dec, gc, cont_header
 
-def plot_mom_map(fig, mom_map, distance, cmap_val, v_sys=None):
+def plot_mom_map(fig, cont_fig, mom_map, rms_val, distance, cmap_val, v_sys=None):
 
     hdul = fits.open(mom_map)
     mom_img = hdul[0]
     mom_header = mom_img.header
     w = wcs.WCS(mom_header, hdul)
-    ra_pix, dec_pix = mom_header['naxis1']//2, mom_header['naxis2']//2
-    ra, dec = w.all_pix2world(ra_pix, dec_pix, 0)
+    #ra_pix, dec_pix = mom_header['naxis1']//2, mom_header['naxis2']//2
+    #ra, dec = w.all_pix2world(ra_pix, dec_pix, 0)
 
     if v_sys == None:
         minval, maxval = np.nanpercentile(mom_img.data, (0.25, 99.75))
@@ -78,10 +71,10 @@ def plot_mom_map(fig, mom_map, distance, cmap_val, v_sys=None):
     gc = aplpy.FITSFigure(mom_map, figure=fig)
     gc.show_colorscale(vmin=minval, vmax=maxval, cmap = cmap_val, stretch ='linear')
     gc.add_colorbar()
-    #contours=drawContours(5, 405, rms_val)
-    #gc.show_contour(cont_fig, levels=contours, colors='k', linewidths=1.0)
+    contours=drawContours(5, 405, rms_val)
+    gc.show_contour(cont_fig, levels=contours, colors='k', linewidths=1.0)
     standardStuff(gc, 1, distance, 'k')
-    return ra, dec, gc, mom_header
+    return gc, mom_header
 
 def display_footer():
     st.divider()
@@ -132,8 +125,7 @@ def main():
 
     source_path = path + '%s/' %src_name
     try:
-        #cont_image = source_path + '%s_SBLB_continuum_robust_2.0.pbcor.tt0.fits' %(src_name)
-        #sky_region = Regions.read(source_path + '%s_rms.crtf' %(src_name), format='crtf')[0]
+        cont_image = source_path + '%s_SBLB_continuum_robust_2.0.pbcor.tt0.fits' %(src_name)
         
         mom8_imgs = glob.glob(source_path+'*robust_2.0_mom8_15arcsec.fits')
         mom9_imgs = glob.glob(source_path+'*robust_2.0_mom9_15arcsec.fits')
@@ -141,9 +133,9 @@ def main():
         
         #col2.subheader('Continuum Plot of %s' %(src_name))
         #col2.markdown("<h1 style='text-align: center; color: black;'>Continuum plot of %s</h1>" %(src_name), unsafe_allow_html=True)
-        #fig1 = plt.figure(figsize=(7,7))
-        #ra, dec, gc1, cont_hdr, cont_rms = plot_continuum(fig1, cont_image, sky_region, dist)
-        #gc1.colorbar.set_axis_label_text(cont_hdr['bunit'])
+        fig1 = plt.figure(figsize=(7,7))
+        ra, dec, gc1, cont_hdr = plot_continuum(fig1, cont_image, dist)
+        gc1.colorbar.set_axis_label_text(cont_hdr['bunit'])
 
         mol=st.sidebar.selectbox('Select the molecule:',molecules)
         mom8_idx = [i for i, s in enumerate(mom8_imgs) if mol in s][0]
@@ -154,16 +146,16 @@ def main():
         col1, col2 = st.columns([0.3, 0.7])
         zoom=col1.slider('Select Zoom Level (RA/Dec square size in arcsecs):', 2, 15, 15, 1)
         fig2 = plt.figure(figsize=(7,7))
-        ra, dec, gc2, mom8_hdr = plot_mom_map(fig2, mom8_img, dist, cmap_val='Spectral_r')
+        gc2, mom8_hdr = plot_mom_map(fig2, cont_image, mom8_img, cont_rms, dist, cmap_val='Spectral_r')
         fig3 = plt.figure(figsize=(7,7))
-        ra2, dec2, gc3, mom9_hdr = plot_mom_map(fig3, mom9_img, dist, cmap_val='RdBu_r', v_sys=vsys)
+        gc3, mom9_hdr = plot_mom_map(fig3, cont_image, mom9_img, cont_rms, dist, cmap_val='RdBu_r', v_sys=vsys)
 
-        col2,col3 = st.columns(2)
+        col1,col2,col3 = st.columns(3)
 
-        #with col1:
-        #    st.markdown("<h3 style='text-align: center;'>Continuum plot of %s</h3>" %(src_name), unsafe_allow_html=True)
-        #    gc1.recenter(x=ra,y=dec, width=(zoom/3600.0),height=(zoom/3600.0))
-        #    st.pyplot(fig1)
+        with col1:
+            st.markdown("<h3 style='text-align: center;'>Continuum plot of %s</h3>" %(src_name), unsafe_allow_html=True)
+            gc1.recenter(x=ra,y=dec, width=(zoom/3600.0),height=(zoom/3600.0))
+            st.pyplot(fig1)
         with col2:
             st.markdown("<h3 style='text-align: center;'>Moment 8 map of %s</h3>" %(mol), unsafe_allow_html=True)
             gc2.recenter(x=ra,y=dec, width=(zoom/3600.0),height=(zoom/3600.0))
@@ -171,7 +163,7 @@ def main():
             st.pyplot(fig2)
         with col3:
             st.markdown("<h3 style='text-align: center;'>Moment 9 map of %s</h3>" %(mol), unsafe_allow_html=True)
-            gc3.recenter(x=ra2,y=dec2, width=(zoom/3600.0),height=(zoom/3600.0))
+            gc3.recenter(x=ra,y=dec, width=(zoom/3600.0),height=(zoom/3600.0))
             gc3.colorbar.set_axis_label_text(mom9_hdr['bunit'])
             st.pyplot(fig3)
         
