@@ -124,55 +124,55 @@ def main():
     col1.markdown(st.session_state['selected_source']['Description'].values[0])
 
     source_path = path + '%s/' %src_name
-    #try:
-    cont_image = source_path + '%s_SBLB_continuum_robust_2.0.pbcor.tt0.fits' %(src_name)
-    
-    mom8_imgs = glob.glob(source_path+'*robust_2.0_mom8_15arcsec.fits')
-    mom9_imgs = glob.glob(source_path+'*robust_2.0_mom9_15arcsec.fits')
+    try:
+        cont_image = source_path + '%s_SBLB_continuum_robust_2.0.pbcor.tt0.fits' %(src_name)
+        
+        mom8_imgs = glob.glob(source_path+'*robust_2.0_mom8_15arcsec.fits')
+        mom9_imgs = glob.glob(source_path+'*robust_2.0_mom9_15arcsec.fits')
 
-    
-    #col2.subheader('Continuum Plot of %s' %(src_name))
-    #col2.markdown("<h1 style='text-align: center; color: black;'>Continuum plot of %s</h1>" %(src_name), unsafe_allow_html=True)
-    fig1 = plt.figure(figsize=(7,7))
-    ra, dec, gc1, cont_hdr = plot_continuum(fig1, cont_image, dist)
-    gc1.colorbar.set_axis_label_text(cont_hdr['bunit'])
+        
+        #col2.subheader('Continuum Plot of %s' %(src_name))
+        #col2.markdown("<h1 style='text-align: center; color: black;'>Continuum plot of %s</h1>" %(src_name), unsafe_allow_html=True)
+        fig1 = plt.figure(figsize=(7,7))
+        ra, dec, gc1, cont_hdr = plot_continuum(fig1, cont_image, dist)
+        gc1.colorbar.set_axis_label_text(cont_hdr['bunit'])
 
-    mol=st.sidebar.selectbox('Select the molecule:',molecules)
-    mom8_idx = [i for i, s in enumerate(mom8_imgs) if mol in s][0]
-    mom9_idx = [i for i, s in enumerate(mom9_imgs) if mol in s][0]
-    mom8_img = mom8_imgs[mom8_idx]
-    mom9_img = mom9_imgs[mom9_idx]
+        mol=st.sidebar.selectbox('Select the molecule:',molecules)
+        mom8_idx = [i for i, s in enumerate(mom8_imgs) if mol in s][0]
+        mom9_idx = [i for i, s in enumerate(mom9_imgs) if mol in s][0]
+        mom8_img = mom8_imgs[mom8_idx]
+        mom9_img = mom9_imgs[mom9_idx]
 
-    col1, col2 = st.columns([0.3, 0.7])
-    zoom=col1.slider('Select Zoom Level (RA/Dec square size in arcsecs):', 2, 15, 15, 1)
-    fig2 = plt.figure(figsize=(7,7))
-    gc2, mom8_hdr = plot_mom_map(fig2, cont_image, mom8_img, cont_rms, dist, cmap_val='Spectral_r')
-    fig3 = plt.figure(figsize=(7,7))
-    gc3, mom9_hdr = plot_mom_map(fig3, cont_image, mom9_img, cont_rms, dist, cmap_val='RdBu_r', v_sys=vsys)
+        col1, col2 = st.columns([0.3, 0.7])
+        zoom=col1.slider('Select Zoom Level (RA/Dec square size in arcsecs):', 2, 15, 15, 1)
+        fig2 = plt.figure(figsize=(7,7))
+        gc2, mom8_hdr = plot_mom_map(fig2, cont_image, mom8_img, cont_rms, dist, cmap_val='Spectral_r')
+        fig3 = plt.figure(figsize=(7,7))
+        gc3, mom9_hdr = plot_mom_map(fig3, cont_image, mom9_img, cont_rms, dist, cmap_val='RdBu_r', v_sys=vsys)
 
-    col1,col2,col3 = st.columns(3)
+        col1,col2,col3 = st.columns(3)
 
-    with col1:
-        st.markdown("<h3 style='text-align: center;'>Continuum plot of %s</h3>" %(src_name), unsafe_allow_html=True)
-        gc1.recenter(x=ra,y=dec, width=(zoom/3600.0),height=(zoom/3600.0))
-        st.pyplot(fig1)
-    with col2:
-        st.markdown("<h3 style='text-align: center;'>Moment 8 map of %s</h3>" %(mol), unsafe_allow_html=True)
-        gc2.recenter(x=ra,y=dec, width=(zoom/3600.0),height=(zoom/3600.0))
-        gc2.colorbar.set_axis_label_text(mom8_hdr['bunit'])
-        st.pyplot(fig2)
-    with col3:
-        st.markdown("<h3 style='text-align: center;'>Moment 9 map of %s</h3>" %(mol), unsafe_allow_html=True)
-        gc3.recenter(x=ra,y=dec, width=(zoom/3600.0),height=(zoom/3600.0))
-        gc3.colorbar.set_axis_label_text(mom9_hdr['bunit'])
-        st.pyplot(fig3)
-    
-    display_footer()
+        with col1:
+            st.markdown("<h3 style='text-align: center;'>Continuum plot of %s</h3>" %(src_name), unsafe_allow_html=True)
+            gc1.recenter(x=ra,y=dec, width=(zoom/3600.0),height=(zoom/3600.0))
+            st.pyplot(fig1)
+        with col2:
+            st.markdown("<h3 style='text-align: center;'>Moment 8 map of %s</h3>" %(mol), unsafe_allow_html=True)
+            gc2.recenter(x=ra,y=dec, width=(zoom/3600.0),height=(zoom/3600.0))
+            gc2.colorbar.set_axis_label_text(mom8_hdr['bunit'])
+            st.pyplot(fig2)
+        with col3:
+            st.markdown("<h3 style='text-align: center;'>Moment 9 map of %s</h3>" %(mol), unsafe_allow_html=True)
+            gc3.recenter(x=ra,y=dec, width=(zoom/3600.0),height=(zoom/3600.0))
+            gc3.colorbar.set_axis_label_text(mom9_hdr['bunit'])
+            st.pyplot(fig3)
+        
+        display_footer()
 
-    #except:
-    #    st.markdown('# Plots for this source coming soon!!')
+    except:
+        st.markdown('# Plots for this source coming soon!!')
 
-    #    display_footer()
+        display_footer()
 
 if __name__=='__main__':
     main()
