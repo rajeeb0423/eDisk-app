@@ -90,10 +90,10 @@ def displaypage():
             selected_src = st.selectbox('select_source', eDisk_df, label_visibility='hidden')
             btnSubmit = st.form_submit_button(label='Submit')
     
-    if 'selected_source' not in st.session_state:
-        st.session_state['selected_source'] = eDisk_df.loc[eDisk_df['Source'] == selected_src]
-    if 'zoom_only' not in st.session_state:
-        st.session_state['zoom_only'] = False
+    
+    st.session_state['selected_source'] = eDisk_df.loc[eDisk_df['Source'] == selected_src]
+    
+    st.session_state['zoom_only'] = False
 
     display_footer()
 
